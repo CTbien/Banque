@@ -1,5 +1,6 @@
 /* auth.css : pages de connexion et d'inscription */
 
+/* Couleurs du thème : à changer ici, utilisées partout avec var(--nom) */
 :root {
   color-scheme: dark; /* icônes natives (calendrier…) adaptées au fond sombre */
   --bg: #0b1120;

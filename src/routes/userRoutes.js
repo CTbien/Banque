@@ -1,3 +1,5 @@
+// userRoutes.js : URL du profil et de la gestion des clients (/api/users/...).
+
 import express from 'express';
 import userController from '../controllers/userController.js';
 import auth from '../middlewares/auth.js';
@@ -16,7 +18,7 @@ router.use(auth);
 router.put('/me', updateProfileRules, validate, userController.updateMe);
 router.put('/me/password', changePasswordRules, validate, userController.changePassword);
 
-// Admin uniquement
+// Admin uniquement (isAdmin renvoie 403 aux clients)
 router.get('/', isAdmin, searchRules, validate, userController.list);
 router.get('/stats', isAdmin, userController.stats);
 router.get('/:id', isAdmin, idParamRule, validate, userController.getOne);

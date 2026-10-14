@@ -1,3 +1,6 @@
+// app.js : configure l'application Express (middlewares + routes).
+// Démarrée par server.js.
+
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,6 +11,7 @@ import userRoutes from './routes/userRoutes.js';
 import compteRoutes from './routes/compteRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 
+// Chemin du dossier courant (__dirname n'existe pas avec import, on le recrée)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -37,6 +41,7 @@ app.get('/api/status', (req, res) => {
 });
 
 // Erreurs non gérées : réponse JSON au lieu d'une page HTML
+// (Express reconnaît un gestionnaire d'erreurs à ses 4 paramètres, next compris)
 app.use((err, req, res, next) => {
     if (err.code === 'EBADCSRFTOKEN') {
         return res.status(403).json({ message: 'Jeton CSRF invalide ou manquant.' });

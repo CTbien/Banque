@@ -1,3 +1,6 @@
+// authRoutes.js : URL de l'authentification (/api/auth/...).
+// Les middlewares s'exécutent dans l'ordre, de gauche à droite, avant le controller.
+
 import express from 'express';
 import authController from '../controllers/authController.js';
 import auth from '../middlewares/auth.js';
@@ -12,6 +15,7 @@ router.get('/csrf-token', getCsrfToken);
 
 // Routes publiques
 router.post('/register', registerRules, validate, authController.register);
+// login : trop d'essais ? → champs valides ? → connexion
 router.post('/login', loginLimiter, loginRules, validate, authController.login);
 router.post('/logout', authController.logout);
 

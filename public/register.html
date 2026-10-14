@@ -11,8 +11,11 @@
     <h1 class="auth-logo">KampusBank</h1>
     <h2>Créer un compte</h2>
 
+    <!-- Message d'erreur général (rempli par auth.js) -->
     <p id="message" class="message" role="alert" hidden></p>
 
+    <!-- novalidate : c'est auth.js qui vérifie les champs et affiche les erreurs.
+         Chaque <small data-error-for="..."> affiche l'erreur du champ du même nom. -->
     <form id="register-form" novalidate>
       <div class="row">
         <div class="field">

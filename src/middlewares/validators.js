@@ -22,6 +22,8 @@ const motDePasseRule = (champ = 'mot_de_passe') => body(champ)
     .matches(/\d/).withMessage('Le mot de passe doit contenir au moins 1 chiffre.');
 
 // Inscription
+// trim() enlève les espaces autour, toLowerCase() met l'email en minuscules.
+// optional({ values: 'falsy' }) : champ facultatif, ignoré s'il est vide.
 export const registerRules = [
     body('nom').trim().notEmpty().withMessage('Le nom est obligatoire.')
         .isLength({ max: 100 }).withMessage('Le nom est trop long.'),
@@ -62,7 +64,7 @@ export const changePasswordRules = [
     motDePasseRule('nouveau_mot_de_passe')
 ];
 
-// :id dans l'URL doit être un nombre entier positif
+// :id dans l'URL doit être un nombre entier positif (toInt() le convertit en nombre)
 export const idParamRule = [
     param('id').isInt({ min: 1 }).withMessage('Identifiant invalide.').toInt()
 ];

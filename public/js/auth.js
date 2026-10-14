@@ -21,7 +21,7 @@ async function postJson(url, body) {
     },
     body: JSON.stringify(body)
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await res.json().catch(() => ({})); // {} si la réponse n'est pas du JSON
   return { ok: res.ok, status: res.status, data };
 }
 
@@ -89,7 +89,7 @@ async function handleLogin(event) {
   } catch (erreur) {
     showMessage('Impossible de contacter le serveur.');
   } finally {
-    bouton.disabled = false;
+    bouton.disabled = false; // finally : exécuté dans tous les cas (succès ou erreur)
   }
 }
 
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (loginForm) {
     loginForm.addEventListener('submit', handleLogin);
 
-    // Message après une inscription réussie.
+    // Message après une inscription réussie (URL : /login.html?inscrit=1).
     if (new URLSearchParams(window.location.search).get('inscrit')) {
       showMessage('Compte créé ! Vous pouvez vous connecter.', 'success');
     }

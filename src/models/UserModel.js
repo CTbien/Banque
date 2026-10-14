@@ -55,6 +55,7 @@ class UserModel {
   // Renvoie true si l'email est déjà pris.
   // excludeId : ignore l'utilisateur lui-même quand il modifie son profil.
   static async emailExists(email, excludeId = null) {
+    // `<>` = "différent de" ; LIMIT 1 : on s'arrête au premier trouvé
     const sql = excludeId
       ? 'SELECT 1 FROM users WHERE email = ? AND id <> ? LIMIT 1'
       : 'SELECT 1 FROM users WHERE email = ? LIMIT 1';
@@ -86,6 +87,7 @@ class UserModel {
     const values = fields.map((field) => data[field]);
 
     const sql = `UPDATE users SET ${setClause} WHERE id = ?`;
+    // [...values, id] : les valeurs des champs, puis l'id pour le dernier ?
     const [result] = await pool.execute(sql, [...values, id]);
     return result.affectedRows > 0; // false si l'id n'existe pas
   }
