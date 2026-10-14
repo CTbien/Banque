@@ -38,26 +38,32 @@ class TransactionModel {
 
   // 3. Historique et filtres (+ filtrerParDate et + filtrerParType du diagramme)[cite: 1]
   static async filter({ compteId, dateDebut, dateFin, type_transaction }) {
-    // On cherche toutes les lignes où le compte est SOIT la source, SOIT le destinataire
+    // On cherche toutes les lignes où le compte est SOIT la source, SOIT le destinataire.
+    // Les jointures ajoutent l'IBAN de chaque côté (affiché par le front : "Virement reçu de ...").
     let sql = `
-      SELECT * FROM transactions 
-      WHERE (compte_source_id = ? OR compte_destinataire_id = ?)
+      SELECT t.*,
+             cs.iban AS iban_source,
+             cd.iban AS iban_destinataire
+      FROM transactions t
+      LEFT JOIN comptes_bancaires cs ON t.compte_source_id = cs.id
+      LEFT JOIN comptes_bancaires cd ON t.compte_destinataire_id = cd.id
+      WHERE (t.compte_source_id = ? OR t.compte_destinataire_id = ?)
     `;
     const params = [compteId, compteId];
 
     // Filtre optionnel par type ('depot', 'retrait', 'virement_emis', 'virement_recu')[cite: 1]
     if (type_transaction) {
-      sql += ' AND type_transaction = ?';
+      sql += ' AND t.type_transaction = ?';
       params.push(type_transaction);
     }
 
     // Filtre optionnel par plage de dates[cite: 1]
     if (dateDebut && dateFin) {
-      sql += ' AND date_transaction BETWEEN ? AND ?';
+      sql += ' AND t.date_transaction BETWEEN ? AND ?';
       params.push(dateDebut, dateFin);
     }
 
-    sql += ' ORDER BY date_transaction DESC';
+    sql += ' ORDER BY t.date_transaction DESC, t.id DESC';
 
     const [rows] = await pool.execute(sql, params);
     return rows;

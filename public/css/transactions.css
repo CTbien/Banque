@@ -1,0 +1,273 @@
+/* transactions.css : page Transactions (dépôt, retrait, virement, historique) */
+
+/* Mêmes couleurs que auth.css pour garder une identité visuelle commune */
+:root {
+  color-scheme: dark;
+  --bg: #0b1120;
+  --card: #111a2e;
+  --border: #1f2a44;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --danger: #f87171;
+  --success: #4ade80;
+  --warning: #fbbf24;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+a { color: var(--primary); }
+.muted { color: var(--muted); }
+.small { font-size: 0.8rem; }
+
+/* ===================== BARRE DU HAUT ===================== */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 24px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+
+.topbar-nav { display: flex; gap: 16px; flex: 1; }
+.topbar-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+}
+.topbar-nav a:hover { color: var(--text); }
+.topbar-nav a[aria-current="page"] { color: var(--text); border-bottom-color: var(--primary); }
+
+.topbar-user { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; }
+
+.btn-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--primary);
+  font: inherit;
+  cursor: pointer;
+}
+.btn-link:hover { text-decoration: underline; }
+
+/* ===================== MISE EN PAGE ===================== */
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+h1 { margin: 0 0 20px; font-size: 1.6rem; }
+h2 { margin: 0 0 16px; font-size: 1.1rem; }
+
+/* Colonne gauche (compte + opération) / colonne droite (historique) */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.col { display: flex; flex-direction: column; gap: 20px; }
+
+.card {
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.card-head { display: flex; justify-content: space-between; align-items: baseline; }
+
+.empty { text-align: center; max-width: 460px; margin: 40px auto; }
+
+/* ===================== FORMULAIRES ===================== */
+
+.field { margin-bottom: 16px; }
+
+label { display: block; margin-bottom: 6px; font-size: 0.9rem; }
+.optional { color: var(--muted); font-size: 0.8rem; }
+
+input, select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+input:focus, select:focus { outline: none; border-color: var(--primary); }
+input[aria-invalid="true"] { border-color: var(--danger); }
+
+.hint, .error { display: block; margin-top: 4px; font-size: 0.8rem; }
+.hint { color: var(--muted); }
+.error { color: var(--danger); }
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+.btn:hover { background: var(--primary-hover); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-sm { width: auto; padding: 9px 14px; font-size: 0.9rem; }
+.btn-inline { display: inline-block; width: auto; padding: 10px 18px; }
+.btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-secondary:hover { background: var(--border); }
+
+/* ===================== COMPTE SÉLECTIONNÉ ===================== */
+
+.solde-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.solde { display: block; margin-top: 4px; font-size: 1.8rem; }
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.badge-actif { background: rgba(74, 222, 128, 0.12); color: var(--success); }
+.badge-bloque { background: rgba(248, 113, 113, 0.12); color: var(--danger); }
+
+.alert {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--warning);
+  font-size: 0.9rem;
+}
+
+/* ===================== ONGLETS D'OPÉRATION ===================== */
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 20px;
+  background: var(--bg);
+  border-radius: 10px;
+}
+.tab {
+  padding: 9px;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  cursor: pointer;
+}
+.tab:hover { color: var(--text); }
+.tab.active { background: var(--card); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
+
+/* ===================== MESSAGES ===================== */
+
+.message {
+  padding: 10px 12px;
+  margin: 0 0 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.message.error-msg { background: rgba(248, 113, 113, 0.12); color: var(--danger); }
+.message.success-msg { background: rgba(74, 222, 128, 0.12); color: var(--success); }
+
+/* ===================== HISTORIQUE ===================== */
+
+.filtres {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+.filtres .field { margin-bottom: 0; }
+.filtres-actions { display: flex; gap: 8px; }
+
+.totaux {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0 8px;
+}
+.totaux > div {
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+.totaux strong { display: block; margin-top: 2px; font-size: 1.2rem; }
+
+.credit { color: var(--success); }
+.debit { color: var(--danger); }
+
+.table-wrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.table th, .table td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.table th { color: var(--muted); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; }
+.table td:first-child { white-space: nowrap; color: var(--muted); }
+.table .num { text-align: right; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
+.table .iban { display: block; margin-top: 2px; font-family: ui-monospace, monospace; font-size: 0.75rem; }
+
+.pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.pill-credit { background: rgba(74, 222, 128, 0.12); color: var(--success); }
+.pill-debit { background: rgba(248, 113, 113, 0.12); color: var(--danger); }
+
+/* ===================== RESPONSIVE ===================== */
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .topbar { flex-wrap: wrap; gap: 12px; padding: 12px 16px; }
+  .topbar-nav { order: 3; flex-basis: 100%; }
+  .filtres { grid-template-columns: 1fr 1fr; }
+  .filtres-actions { grid-column: 1 / -1; }
+  .card { padding: 18px; }
+}
+

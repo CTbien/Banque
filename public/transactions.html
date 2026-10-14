@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transactions - KampusBank</title>
+  <link rel="stylesheet" href="/css/transactions.css">
+</head>
+<body>
+  <!-- Barre du haut : navigation + utilisateur connecté -->
+  <header class="topbar">
+    <a href="/dashboard.html" class="logo">KampusBank</a>
+    <nav class="topbar-nav" aria-label="Navigation principale">
+      <a href="/dashboard.html">Mes comptes</a>
+      <a href="/transactions.html" aria-current="page">Transactions</a>
+    </nav>
+    <div class="topbar-user">
+      <span id="user-name" class="muted">…</span>
+      <!-- data-logout : géré par auth.js -->
+      <button type="button" class="btn-link" data-logout>Déconnexion</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>Transactions</h1>
+
+    <!-- Messages de succès / d'erreur -->
+    <p id="tx-message" class="message" role="status" aria-live="polite" hidden></p>
+
+    <!-- Affiché si l'utilisateur n'a encore aucun compte -->
+    <section id="aucun-compte" class="card empty" hidden>
+      <h2>Aucun compte bancaire</h2>
+      <p class="muted">Ouvrez d'abord un compte pour pouvoir effectuer des opérations.</p>
+      <a href="/dashboard.html" class="btn btn-inline">Ouvrir un compte</a>
+    </section>
+
+    <div id="tx-contenu" class="layout" hidden>
+      <div class="col">
+        <!-- 1. Choix du compte -->
+        <section class="card" aria-labelledby="titre-compte">
+          <h2 id="titre-compte">Compte</h2>
+          <div class="field">
+            <label for="compte-select">Compte sélectionné</label>
+            <select id="compte-select"></select>
+          </div>
+          <div class="solde-row">
+            <div>
+              <span class="muted small">Solde disponible</span>
+              <strong id="compte-solde" class="solde">—</strong>
+            </div>
+            <span id="compte-statut" class="badge">—</span>
+          </div>
+          <p id="compte-bloque-alerte" class="alert" hidden>
+            Ce compte est bloqué : aucune opération n'est possible.
+          </p>
+        </section>
+
+        <!-- 2. Nouvelle opération -->
+        <section class="card" aria-labelledby="titre-operation">
+          <h2 id="titre-operation">Nouvelle opération</h2>
+
+          <div class="tabs" role="tablist" aria-label="Type d'opération">
+            <button type="button" role="tab" class="tab active" data-operation="depot" aria-selected="true">Dépôt</button>
+            <button type="button" role="tab" class="tab" data-operation="retrait" aria-selected="false">Retrait</button>
+            <button type="button" role="tab" class="tab" data-operation="virement" aria-selected="false">Virement</button>
+          </div>
+
+          <form id="operation-form" novalidate>
+            <!-- Visible uniquement pour un virement -->
+            <div class="field" id="champ-iban" hidden>
+              <label for="dest_iban">IBAN du bénéficiaire</label>
+              <input type="text" id="dest_iban" name="dest_iban" list="ibans-internes"
+                     autocomplete="off" spellcheck="false" placeholder="FR76-YBNK-…">
+              <datalist id="ibans-internes"></datalist>
+              <small class="hint">Saisissez un IBAN ou choisissez l'un de vos autres comptes.</small>
+              <small class="error" data-error-for="dest_iban"></small>
+            </div>
+
+            <div class="field">
+              <label for="montant">Montant (€)</label>
+              <input type="text" id="montant" name="montant" inputmode="decimal"
+                     autocomplete="off" placeholder="0,00" required>
+              <small class="error" data-error-for="montant"></small>
+            </div>
+
+            <div class="field">
+              <label for="description">Libellé <span class="optional">(facultatif)</span></label>
+              <input type="text" id="description" name="description" maxlength="255">
+            </div>
+
+            <button type="submit" id="btn-operation" class="btn">Déposer</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- 3. Historique -->
+      <section class="card historique" aria-labelledby="titre-historique">
+        <div class="card-head">
+          <h2 id="titre-historique">Historique</h2>
+          <button type="button" id="btn-rafraichir" class="btn-link">Actualiser</button>
+        </div>
+
+        <form id="filtres" class="filtres" novalidate>
+          <div class="field">
+            <label for="filtre-type">Type</label>
+            <select id="filtre-type">
+              <option value="">Toutes</option>
+              <option value="depot">Dépôts</option>
+              <option value="retrait">Retraits</option>
+              <option value="virement_emis">Virements</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filtre-debut">Du</label>
+            <input type="date" id="filtre-debut">
+          </div>
+          <div class="field">
+            <label for="filtre-fin">Au</label>
+            <input type="date" id="filtre-fin">
+          </div>
+          <div class="filtres-actions">
+            <button type="submit" class="btn btn-sm">Filtrer</button>
+            <button type="reset" class="btn btn-sm btn-secondary">Réinitialiser</button>
+          </div>
+        </form>
+
+        <div class="totaux">
+          <div>
+            <span class="muted small">Entrées</span>
+            <strong id="total-credits" class="credit">—</strong>
+          </div>
+          <div>
+            <span class="muted small">Sorties</span>
+            <strong id="total-debits" class="debit">—</strong>
+          </div>
+        </div>
+
+        <p id="historique-etat" class="muted small" role="status"></p>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Opération</th>
+                <th scope="col">Libellé</th>
+                <th scope="col" class="num">Montant</th>
+              </tr>
+            </thead>
+            <tbody id="historique-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- auth.js : bouton de déconnexion (data-logout) -->
+  <script src="/js/auth.js"></script>
+  <script src="/js/transactions.js"></script>
+</body>
+</html>
+
