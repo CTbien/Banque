@@ -30,14 +30,15 @@ class UserModel {
         (nom, prenom, email, telephone, adresse_postale, date_naissance, mot_de_passe)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-    // `?? null` : un champ vide devient NULL en base.
+    // `|| null` : un champ absent ou vide ("") devient NULL en base
+    // (MySQL refuse "" pour une date).
     const [result] = await pool.execute(sql, [
       nom,
       prenom,
       email,
-      telephone ?? null,
-      adresse_postale ?? null,
-      date_naissance ?? null,
+      telephone || null,
+      adresse_postale || null,
+      date_naissance || null,
       mot_de_passe
     ]);
     return result.insertId;

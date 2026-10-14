@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscription - KampusBank</title>
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <main class="auth-card">
+    <h1 class="auth-logo">KampusBank</h1>
+    <h2>Créer un compte</h2>
+
+    <p id="message" class="message" role="alert" hidden></p>
+
+    <form id="register-form" novalidate>
+      <div class="row">
+        <div class="field">
+          <label for="prenom">Prénom</label>
+          <input type="text" id="prenom" name="prenom" autocomplete="given-name" maxlength="100" required>
+          <small class="error" data-error-for="prenom"></small>
+        </div>
+        <div class="field">
+          <label for="nom">Nom</label>
+          <input type="text" id="nom" name="nom" autocomplete="family-name" maxlength="100" required>
+          <small class="error" data-error-for="nom"></small>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+        <small class="error" data-error-for="email"></small>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="telephone">Téléphone</label>
+          <input type="tel" id="telephone" name="telephone" autocomplete="tel" inputmode="numeric" placeholder="0612345678" required>
+          <small class="error" data-error-for="telephone"></small>
+        </div>
+        <div class="field">
+          <label for="date_naissance">Date de naissance <span class="optional">(facultatif)</span></label>
+          <input type="date" id="date_naissance" name="date_naissance" autocomplete="bday">
+          <small class="error" data-error-for="date_naissance"></small>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="adresse_postale">Adresse postale <span class="optional">(facultatif)</span></label>
+        <input type="text" id="adresse_postale" name="adresse_postale" autocomplete="street-address" maxlength="255">
+        <small class="error" data-error-for="adresse_postale"></small>
+      </div>
+
+      <div class="field">
+        <label for="mot_de_passe">Mot de passe</label>
+        <input type="password" id="mot_de_passe" name="mot_de_passe" autocomplete="new-password" required>
+        <small class="hint">8 caractères minimum, dont 1 majuscule et 1 chiffre.</small>
+        <small class="error" data-error-for="mot_de_passe"></small>
+      </div>
+
+      <div class="field">
+        <label for="confirmation">Confirmer le mot de passe</label>
+        <input type="password" id="confirmation" name="confirmation" autocomplete="new-password" required>
+        <small class="error" data-error-for="confirmation"></small>
+      </div>
+
+      <button type="submit" class="btn">Créer mon compte</button>
+    </form>
+
+    <p class="auth-switch">Déjà client ? <a href="/login.html">Se connecter</a></p>
+  </main>
+
+  <script src="/js/auth.js"></script>
+</body>
+</html>
