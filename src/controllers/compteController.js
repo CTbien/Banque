@@ -1,72 +1,54 @@
-// On importe le modèle que tu viens de créer
-const CompteModel = require('../models/CompteModel');
+import CompteModel from '../models/CompteModel.js';
 
-// Petites fonctions pour fabriquer l'IBAN au format : FR76-YBNK-XXXX-XXXX-XXXX-XXXX-XXX
-function quatreChiffres() {
-    return Math.floor(1000 + Math.random() * 9000);
-}
-function troisChiffres() {
-    return Math.floor(100 + Math.random() * 900);
-}
+// Générateur d'IBAN au format FR76-YBNK-XXXX-XXXX-XXXX-XXXX-XXX
 function fabriquerIban() {
-    return "FR76-YBNK-" + quatreChiffres() + "-" + quatreChiffres() + "-" + quatreChiffres() + "-" + quatreChiffres() + "-" + troisChiffres();
+    const quatreChiffres = () => Math.floor(1000 + Math.random() * 9000);
+    const troisChiffres = () => Math.floor(100 + Math.random() * 900);
+    return `FR76-YBNK-${quatreChiffres()}-${quatreChiffres()}-${quatreChiffres()}-${quatreChiffres()}-${troisChiffres()}`;
 }
 
 const compteController = {
 
-    // 1. Créer un nouveau compte bancaire
+    // POST /api/comptes : Création d'un nouveau compte
     async creerCompte(req, res) {
         try {
-            // req.user est fourni par le middleware d'authentification du Développeur A
             const userId = req.user.id;
             const { type_compte } = req.body;
 
-            // Vérification : le type doit obligatoirement être l'un de ces trois-là
             const typesAutorises = ['courant', 'livret A', 'PEL'];
             if (!typesAutorises.includes(type_compte)) {
-                return res.status(400).json({ message: "Type de compte invalide (choisir: courant, livret A ou PEL)." });
+                return res.status(400).json({ message: "Type de compte invalide (courant, livret A ou PEL)." });
             }
 
-            // On génère un IBAN au bon format
             const iban = fabriquerIban();
+            const compteId = await CompteModel.creer(userId, iban, type_compte);
 
-            // On demande au modèle d'insérer en base de données
-            const nouveauCompteId = await CompteModel.creer(userId, iban, type_compte);
-
-            return res.status(201).json({
-                message: "Compte bancaire créé avec succès !",
-                compteId: nouveauCompteId,
-                iban: iban
-            });
+            return res.status(201).json({ message: "Compte créé avec succès.", compteId, iban });
         } catch (erreur) {
             return res.status(500).json({ message: "Erreur serveur.", erreur: erreur.message });
         }
     },
 
-    // 2. Voir tous les comptes de l'utilisateur connecté
+    // GET /api/comptes : Consulter ses propres comptes
     async getMesComptes(req, res) {
         try {
-            const userId = req.user.id;
-            const comptes = await CompteModel.trouverParUtilisateur(userId);
+            const comptes = await CompteModel.trouverParUtilisateur(req.user.id);
             return res.status(200).json(comptes);
         } catch (erreur) {
             return res.status(500).json({ message: "Erreur serveur.", erreur: erreur.message });
         }
     },
 
-    // 3. Voir le détail d'un seul compte
+    // GET /api/comptes/:id : Consulter le détail d'un compte précis
     async getDetailCompte(req, res) {
         try {
-            const compteId = req.params.id;
-            const compte = await CompteModel.trouverParId(compteId);
-
+            const compte = await CompteModel.trouverParId(req.params.id);
             if (!compte) {
                 return res.status(404).json({ message: "Compte introuvable." });
             }
 
-            // Sécurité : on vérifie que le compte appartient bien au client connecté
             if (compte.user_id !== req.user.id && !req.user.is_admin) {
-                return res.status(403).json({ message: "Accès refusé : ce compte ne vous appartient pas." });
+                return res.status(403).json({ message: "Accès refusé." });
             }
 
             return res.status(200).json(compte);
@@ -75,51 +57,43 @@ const compteController = {
         }
     },
 
-    // 4. Supprimer un compte (règle obligatoire : solde = 0)
+    // DELETE /api/comptes/:id : Clôturer un compte (solde doit être à 0)
     async supprimerCompte(req, res) {
         try {
-            const compteId = req.params.id;
-            const compte = await CompteModel.trouverParId(compteId);
-
+            const compte = await CompteModel.trouverParId(req.params.id);
             if (!compte) {
                 return res.status(404).json({ message: "Compte introuvable." });
             }
 
-            // Sécurité propriétaire
             if (compte.user_id !== req.user.id && !req.user.is_admin) {
                 return res.status(403).json({ message: "Accès refusé." });
             }
 
-            // Règle du cahier des charges : interdiction de supprimer si le solde n'est pas à 0
             if (parseFloat(compte.solde) !== 0) {
-                return res.status(400).json({
-                    message: "Impossible de supprimer : le solde doit être exactement à 0.00 €."
-                });
+                return res.status(400).json({ message: "Le solde doit être à 0.00 € pour supprimer le compte." });
             }
 
-            await CompteModel.supprimer(compteId);
+            await CompteModel.supprimer(req.params.id);
             return res.status(200).json({ message: "Compte clôturé avec succès." });
         } catch (erreur) {
             return res.status(500).json({ message: "Erreur serveur.", erreur: erreur.message });
         }
     },
 
-    // 5. Bloquer ou débloquer un compte (Action réservée à l'administrateur)
+    // PATCH /api/comptes/:id/statut : Bloquer ou débloquer un compte (Admin)
     async modifierStatut(req, res) {
         try {
-            const compteId = req.params.id;
-            const { statut } = req.body; // 'actif' ou 'bloqué'
-
+            const { statut } = req.body;
             if (statut !== 'actif' && statut !== 'bloqué') {
-                return res.status(400).json({ message: "Statut invalide. Utilisez 'actif' ou 'bloqué'." });
+                return res.status(400).json({ message: "Statut invalide ('actif' ou 'bloqué')." });
             }
 
-            const misAJour = await CompteModel.changerStatut(compteId, statut);
+            const misAJour = await CompteModel.changerStatut(req.params.id, statut);
             if (!misAJour) {
                 return res.status(404).json({ message: "Compte introuvable." });
             }
 
-            return res.status(200).json({ message: `Compte passé en statut : ${statut}` });
+            return res.status(200).json({ message: `Statut modifié : ${statut}` });
         } catch (erreur) {
             return res.status(500).json({ message: "Erreur serveur.", erreur: erreur.message });
         }
@@ -127,4 +101,4 @@ const compteController = {
 
 };
 
-module.exports = compteController;
+export default compteController;
