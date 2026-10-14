@@ -1,9 +1,13 @@
-// Middleware de vérification des droits administrateur
+// isAdmin.js : bloque les routes réservées aux administrateurs.
+// À placer APRÈS auth : router.get('/', auth, isAdmin, controller.maFonction);
+
 const isAdmin = (req, res, next) => {
-    if (req.user && req.user.is_admin) {
-        return next();
+    // req.user est rempli par le middleware auth.
+    if (!req.user?.is_admin) {
+        return res.status(403).json({ message: 'Accès réservé aux administrateurs.' });
     }
-    return res.status(403).json({ message: "Accès refusé : privilèges administrateur requis." });
+
+    next(); // c'est un admin : on continue
 };
 
 export default isAdmin;

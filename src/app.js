@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import compteRoutes from './routes/compteRoutes.js';
@@ -8,6 +9,9 @@ const app = express();
 
 // Middleware pour parser le JSON
 app.use(express.json());
+
+// Lit les cookies (req.cookies.token), nécessaire au middleware auth
+app.use(cookieParser());
 
 // Route de test
 app.get('/', (req, res) => {
