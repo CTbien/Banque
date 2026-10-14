@@ -4,9 +4,10 @@
 import pool from '../config/db.js';
 
 // Colonnes renvoyables au navigateur (jamais le mot de passe).
+// DATE_FORMAT renvoie "1999-05-12" (sinon le fuseau horaire décale la date d'un jour).
 const PUBLIC_FIELDS = `
   id, nom, prenom, email, telephone, adresse_postale,
-  date_naissance, is_admin, created_at
+  DATE_FORMAT(date_naissance, '%Y-%m-%d') AS date_naissance, is_admin, created_at
 `;
 
 // Seuls ces champs sont modifiables par update() (empêche de passer is_admin à true).
@@ -29,14 +30,15 @@ class UserModel {
         (nom, prenom, email, telephone, adresse_postale, date_naissance, mot_de_passe)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-    // `?? null` : un champ vide devient NULL en base.
+    // `|| null` : un champ absent ou vide ("") devient NULL en base
+    // (MySQL refuse "" pour une date).
     const [result] = await pool.execute(sql, [
       nom,
       prenom,
       email,
-      telephone ?? null,
-      adresse_postale ?? null,
-      date_naissance ?? null,
+      telephone || null,
+      adresse_postale || null,
+      date_naissance || null,
       mot_de_passe
     ]);
     return result.insertId;
@@ -53,6 +55,7 @@ class UserModel {
   // Renvoie true si l'email est déjà pris.
   // excludeId : ignore l'utilisateur lui-même quand il modifie son profil.
   static async emailExists(email, excludeId = null) {
+    // `<>` = "différent de" ; LIMIT 1 : on s'arrête au premier trouvé
     const sql = excludeId
       ? 'SELECT 1 FROM users WHERE email = ? AND id <> ? LIMIT 1'
       : 'SELECT 1 FROM users WHERE email = ? LIMIT 1';
@@ -84,6 +87,7 @@ class UserModel {
     const values = fields.map((field) => data[field]);
 
     const sql = `UPDATE users SET ${setClause} WHERE id = ?`;
+    // [...values, id] : les valeurs des champs, puis l'id pour le dernier ?
     const [result] = await pool.execute(sql, [...values, id]);
     return result.affectedRows > 0; // false si l'id n'existe pas
   }
@@ -113,7 +117,7 @@ class UserModel {
     const sql = `
       SELECT DISTINCT
         u.id, u.nom, u.prenom, u.email, u.telephone, u.adresse_postale,
-        u.date_naissance, u.is_admin, u.created_at
+        DATE_FORMAT(u.date_naissance, '%Y-%m-%d') AS date_naissance, u.is_admin, u.created_at
       FROM users u
       LEFT JOIN comptes_bancaires c ON c.user_id = u.id
       WHERE u.is_admin = FALSE

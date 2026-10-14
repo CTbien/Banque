@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - KampusBank</title>
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <main class="auth-card">
+    <h1 class="auth-logo">KampusBank</h1>
+    <h2>Connexion</h2>
+
+    <!-- Message de succès (après inscription) ou d'erreur -->
+    <p id="message" class="message" role="alert" hidden></p>
+
+    <form id="login-form" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+        <small class="error" data-error-for="email"></small>
+      </div>
+
+      <div class="field">
+        <label for="mot_de_passe">Mot de passe</label>
+        <input type="password" id="mot_de_passe" name="mot_de_passe" autocomplete="current-password" required>
+        <small class="error" data-error-for="mot_de_passe"></small>
+      </div>
+
+      <button type="submit" class="btn">Se connecter</button>
+    </form>
+
+    <p class="auth-switch">Pas encore client ? <a href="/register.html">Créer un compte</a></p>
+  </main>
+
+  <script src="/js/auth.js"></script>
+</body>
+</html>
