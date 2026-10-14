@@ -4,9 +4,10 @@
 import pool from '../config/db.js';
 
 // Colonnes renvoyables au navigateur (jamais le mot de passe).
+// DATE_FORMAT renvoie "1999-05-12" (sinon le fuseau horaire décale la date d'un jour).
 const PUBLIC_FIELDS = `
   id, nom, prenom, email, telephone, adresse_postale,
-  date_naissance, is_admin, created_at
+  DATE_FORMAT(date_naissance, '%Y-%m-%d') AS date_naissance, is_admin, created_at
 `;
 
 // Seuls ces champs sont modifiables par update() (empêche de passer is_admin à true).
@@ -113,7 +114,7 @@ class UserModel {
     const sql = `
       SELECT DISTINCT
         u.id, u.nom, u.prenom, u.email, u.telephone, u.adresse_postale,
-        u.date_naissance, u.is_admin, u.created_at
+        DATE_FORMAT(u.date_naissance, '%Y-%m-%d') AS date_naissance, u.is_admin, u.created_at
       FROM users u
       LEFT JOIN comptes_bancaires c ON c.user_id = u.id
       WHERE u.is_admin = FALSE
