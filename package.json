@@ -2,9 +2,10 @@
   "name": "banque",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js",
     "start": "node server.js"
   },
   "repository": {
@@ -14,13 +15,14 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/CTbien/Banque/issues"
   },
   "homepage": "https://github.com/CTbien/Banque#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "colors": "^1.4.0",
     "cookie-parser": "^1.4.7",
     "csrf-csrf": "^4.0.3",
     "dotenv": "^18.0.4",
