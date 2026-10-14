@@ -1,5 +1,3 @@
-// 1. Importer tes routes
-const compteRoutes = require('./routes/compteRoutes');
+import compteRoutes from './routes/compteRoutes.js';
 
-// 2. Définir le préfixe d'URL (toutes tes routes commenceront par /api/comptes)
 app.use('/api/comptes', compteRoutes);
