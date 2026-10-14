@@ -12,6 +12,28 @@ const state = {
   compteActifPourAction: null
 };
 
+// Cache du jeton CSRF pour les requêtes POST, DELETE, PATCH
+let csrfTokenCache = null;
+
+/**
+ * Récupère le jeton CSRF fourni par l'API (GET /api/auth/csrf-token)
+ * et le met en cache pour les requêtes mutatives (POST, DELETE, PATCH).
+ */
+async function obtenirCsrfToken(forceRefresh = false) {
+  if (csrfTokenCache && !forceRefresh) return csrfTokenCache;
+  try {
+    const res = await fetch('/api/auth/csrf-token');
+    if (res.ok) {
+      const data = await res.json();
+      csrfTokenCache = data.csrfToken;
+      return csrfTokenCache;
+    }
+  } catch (err) {
+    console.warn('Impossible de récupérer le jeton CSRF :', err);
+  }
+  return '';
+}
+
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
   initialiserModuleComptes();
@@ -23,8 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initialiserModuleComptes() {
   configurerEcouteursModales();
   configurerSelecteurTypeCompte();
-  await chargerUtilisateur();
-  await chargerComptes();
+  await Promise.all([
+    chargerUtilisateur(),
+    chargerComptes(),
+    obtenirCsrfToken()
+  ]);
 }
 
 /**
@@ -252,15 +277,20 @@ async function creerCompte() {
   }
 
   try {
+    const csrfToken = await obtenirCsrfToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['x-csrf-token'] = csrfToken;
+
     const res = await fetch('/api/comptes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ type_compte: typeCompte })
     });
 
     const data = await res.json();
 
     if (!res.ok) {
+      if (res.status === 403) csrfTokenCache = null;
       throw new Error(data.message || 'Impossible de créer le compte.');
     }
 
@@ -348,10 +378,18 @@ async function confirmerClotureCompte() {
   }
 
   try {
-    const res = await fetch(`/api/comptes/${compteId}`, { method: 'DELETE' });
+    const csrfToken = await obtenirCsrfToken();
+    const headers = {};
+    if (csrfToken) headers['x-csrf-token'] = csrfToken;
+
+    const res = await fetch(`/api/comptes/${compteId}`, {
+      method: 'DELETE',
+      headers
+    });
     const data = await res.json();
 
     if (!res.ok) {
+      if (res.status === 403) csrfTokenCache = null;
       throw new Error(data.message || 'Erreur lors de la clôture.');
     }
 
@@ -459,14 +497,21 @@ async function modifierStatutCompte(compteId, statut) {
   if (btn) btn.disabled = true;
 
   try {
+    const csrfToken = await obtenirCsrfToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['x-csrf-token'] = csrfToken;
+
     const res = await fetch(`/api/comptes/${compteId}/statut`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ statut })
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Erreur lors de la modification de statut.');
+    if (!res.ok) {
+      if (res.status === 403) csrfTokenCache = null;
+      throw new Error(data.message || 'Erreur lors de la modification de statut.');
+    }
 
     fermerModal(document.getElementById('modal-statut-compte'));
     afficherToast(`Le compte est désormais ${statut}.`, 'success');

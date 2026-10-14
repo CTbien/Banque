@@ -254,7 +254,10 @@
     // Gestion de la déconnexion
     async function deconnecterUtilisateur() {
       try {
-        await fetch('/api/auth/logout', { method: 'POST' });
+        const csrfToken = typeof obtenirCsrfToken === 'function' ? await obtenirCsrfToken() : '';
+        const headers = {};
+        if (csrfToken) headers['x-csrf-token'] = csrfToken;
+        await fetch('/api/auth/logout', { method: 'POST', headers });
         afficherToast('Déconnexion réussie. À bientôt !', 'info');
         setTimeout(() => {
           window.location.href = '/login.html';
