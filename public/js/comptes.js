@@ -232,6 +232,9 @@ function rendreComptes() {
             <button class="btn btn-outline btn-sm" onclick="ouvrirModalDetail(${compte.id})">
               Détails
             </button>
+            <a href="/transactions.html" class="btn btn-outline btn-sm" title="Effectuer un virement, dépôt ou retrait">
+              Opérations
+            </a>
             ${state.currentUser && state.currentUser.is_admin ? `
               <button class="btn btn-outline btn-sm" onclick="ouvrirModalStatut(${compte.id})" title="Changer le statut (Admin)">
                 ${estBloque ? 'Débloquer' : 'Bloquer'}
