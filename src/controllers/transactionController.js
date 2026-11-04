@@ -114,43 +114,50 @@ export const virerVers = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    // Vérifier le compte source
-    const [sources] = await connection.execute(
-      'SELECT solde, statut, iban, user_id FROM comptes_bancaires WHERE id = ? FOR UPDATE',
-      [compte_source_id]
+    // Chercher le compte destinataire par son IBAN (sans verrou : son id ne change jamais)
+    const [destinataires] = await connection.execute(
+      'SELECT id FROM comptes_bancaires WHERE iban = ?',
+      [dest_iban]
     );
-    if (sources.length === 0) {
+    const compte_dest_id = destinataires[0]?.id ?? null;
+
+    // Verrouille les deux comptes en une fois, toujours dans le même ordre (par id) :
+    // sinon A→B et B→A simultanés s'attendent l'un l'autre (deadlock).
+    const [comptes] = await connection.execute(
+      'SELECT id, solde, statut, iban, user_id FROM comptes_bancaires WHERE id IN (?, ?) ORDER BY id FOR UPDATE',
+      [compte_source_id, compte_dest_id]
+    );
+    const source = comptes.find((c) => c.id === compte_source_id);
+    const destinataire = comptes.find((c) => c.id === compte_dest_id);
+
+    // Vérifier le compte source
+    if (!source) {
       await connection.rollback();
       return res.status(404).json({ error: 'Compte source introuvable.' });
     }
     // Vérification de propriété : le compte source doit appartenir à l'utilisateur connecté (sauf admin)
-    if (sources[0].user_id !== req.user.id && !req.user.is_admin) {
+    if (source.user_id !== req.user.id && !req.user.is_admin) {
       await connection.rollback();
       return res.status(403).json({ error: 'Accès refusé : le compte source ne vous appartient pas.' });
     }
-    if (sources[0].statut !== 'actif') {
+    if (source.statut !== 'actif') {
       await connection.rollback();
       return res.status(403).json({ error: 'Compte source bloqué.' });
     }
-    if (sources[0].iban === dest_iban) {
+    if (source.iban === dest_iban) {
       await connection.rollback();
       return res.status(400).json({ error: 'Impossible de faire un virement vers le même compte.' });
     }
-    if (Number(sources[0].solde) < Number(montant)) {
+    if (Number(source.solde) < Number(montant)) {
       await connection.rollback();
       return res.status(400).json({ error: 'Solde insuffisant.' });
     }
 
-    // Chercher le compte destinataire par son IBAN
-    const [destinataires] = await connection.execute(
-      'SELECT id, statut FROM comptes_bancaires WHERE iban = ? FOR UPDATE',
-      [dest_iban]
-    );
-    if (destinataires.length === 0 || destinataires[0].statut !== 'actif') {
+    // Vérifier le compte destinataire
+    if (!destinataire || destinataire.statut !== 'actif') {
       await connection.rollback();
       return res.status(404).json({ error: 'Compte destinataire introuvable ou bloqué.' });
     }
-    const compte_dest_id = destinataires[0].id;
 
     // Débiter source et créditer destinataire
     await connection.execute(
