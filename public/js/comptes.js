@@ -88,12 +88,34 @@ function mettreAJourProfilUI(user) {
     if (userAvatarEl) userAvatarEl.textContent = (prenom.charAt(0) + (nom ? nom.charAt(0) : '')).toUpperCase();
     if (userRoleEl) userRoleEl.textContent = user.is_admin ? 'Administrateur' : 'Client Particulier';
     if (adminBadgeEl) adminBadgeEl.style.display = user.is_admin ? 'inline-flex' : 'none';
+    afficherInfosPerso(user);
   } else {
     if (userNameEl) userNameEl.textContent = 'Espace Démo';
     if (userAvatarEl) userAvatarEl.textContent = 'KB';
     if (userRoleEl) userRoleEl.textContent = 'Client';
     if (adminBadgeEl) adminBadgeEl.style.display = 'none';
   }
+}
+
+/**
+ * Affiche les informations personnelles sur le tableau de bord
+ */
+function afficherInfosPerso(user) {
+  const naissance = user.date_naissance ? user.date_naissance.split('-').reverse().join('/') : '—';
+  const valeurs = {
+    'info-nom': `${user.prenom} ${user.nom}`,
+    'info-email': user.email,
+    'info-telephone': user.telephone || '—',
+    'info-adresse': user.adresse_postale || '—',
+    'info-naissance': naissance
+  };
+  Object.entries(valeurs).forEach(([id, valeur]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = valeur;
+  });
+
+  const lienAdmin = document.getElementById('nav-admin');
+  if (lienAdmin) lienAdmin.hidden = !user.is_admin;
 }
 
 /**
@@ -622,9 +644,9 @@ function formaterDevise(montant) {
   }).format(montant);
 }
 
+// L'IBAN est déjà découpé par des tirets : on l'affiche tel quel
 function formaterIban(iban) {
-  if (!iban) return '';
-  return iban.replace(/(.{4})/g, '$1 ').trim();
+  return iban || '';
 }
 
 function formaterNomType(type) {

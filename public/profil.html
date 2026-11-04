@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon profil - KampusBank</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/espace.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar-container">
+      <a href="/dashboard.html" class="navbar-brand"><span>KampusBank</span></a>
+      <nav aria-label="Navigation principale">
+        <ul class="navbar-nav">
+          <li><a href="/dashboard.html" class="nav-link">Mes Comptes</a></li>
+          <li><a href="/transactions.html" class="nav-link">Virements & Opérations</a></li>
+          <li><a href="/profil.html" class="nav-link active" aria-current="page">Mon profil</a></li>
+        </ul>
+      </nav>
+      <div class="navbar-user">
+        <span class="user-name" id="user-name">…</span>
+        <!-- data-logout : géré par auth.js -->
+        <button type="button" class="btn btn-outline btn-sm" data-logout>Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <h1 class="section-title">Mon profil</h1>
+
+    <!-- Messages de succès / d'erreur -->
+    <p id="message" class="message" role="alert" hidden></p>
+
+    <section class="panneau" aria-labelledby="titre-infos">
+      <h2 id="titre-infos">Mes informations</h2>
+      <form id="profil-form" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="prenom">Prénom</label>
+            <input type="text" id="prenom" name="prenom" autocomplete="given-name" required>
+            <small class="error" data-error-for="prenom"></small>
+          </div>
+          <div class="field">
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" name="nom" autocomplete="family-name" required>
+            <small class="error" data-error-for="nom"></small>
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" autocomplete="email" required>
+            <small class="error" data-error-for="email"></small>
+          </div>
+          <div class="field">
+            <label for="telephone">Téléphone</label>
+            <input type="tel" id="telephone" name="telephone" autocomplete="tel" required>
+            <small class="error" data-error-for="telephone"></small>
+          </div>
+          <div class="field">
+            <label for="date_naissance">Date de naissance</label>
+            <input type="date" id="date_naissance" name="date_naissance" autocomplete="bday">
+            <small class="error" data-error-for="date_naissance"></small>
+          </div>
+          <div class="field">
+            <label for="adresse_postale">Adresse postale</label>
+            <input type="text" id="adresse_postale" name="adresse_postale" autocomplete="street-address">
+            <small class="error" data-error-for="adresse_postale"></small>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </form>
+    </section>
+
+    <section class="panneau" aria-labelledby="titre-mdp">
+      <h2 id="titre-mdp">Changer mon mot de passe</h2>
+      <form id="mdp-form" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="ancien_mot_de_passe">Mot de passe actuel</label>
+            <input type="password" id="ancien_mot_de_passe" name="ancien_mot_de_passe" autocomplete="current-password" required>
+            <small class="error" data-error-for="ancien_mot_de_passe"></small>
+          </div>
+          <div class="field">
+            <label for="nouveau_mot_de_passe">Nouveau mot de passe</label>
+            <input type="password" id="nouveau_mot_de_passe" name="nouveau_mot_de_passe" autocomplete="new-password" required>
+            <small class="error" data-error-for="nouveau_mot_de_passe"></small>
+          </div>
+          <div class="field">
+            <label for="confirmation">Confirmation</label>
+            <input type="password" id="confirmation" name="confirmation" autocomplete="new-password" required>
+            <small class="error" data-error-for="confirmation"></small>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Changer le mot de passe</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/profil.js"></script>
+</body>
+</html>

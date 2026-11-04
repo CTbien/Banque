@@ -84,7 +84,8 @@ class UserModel {
     if (fields.length === 0) return false;
 
     const setClause = fields.map((field) => `${field} = ?`).join(', ');
-    const values = fields.map((field) => data[field]);
+    // `|| null` : un champ vidé devient NULL (MySQL refuse "" pour une date)
+    const values = fields.map((field) => data[field] || null);
 
     const sql = `UPDATE users SET ${setClause} WHERE id = ?`;
     // [...values, id] : les valeurs des champs, puis l'id pour le dernier ?
