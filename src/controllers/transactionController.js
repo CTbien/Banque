@@ -5,30 +5,26 @@ import TransactionModel from '../models/TransactionModel.js';
 export const deposer = async (req, res) => {
   const { compte_id, montant, description } = req.body;
 
-  if (!montant || montant <= 0) {
-    return res.status(400).json({ error: 'Le montant doit être supérieur à 0.' });
-  }
-
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
     const [comptes] = await connection.execute(
-      'SELECT statut, user_id FROM comptes_bancaires WHERE id = ?',
+      'SELECT statut, user_id FROM comptes_bancaires WHERE id = ? FOR UPDATE',
       [compte_id]
     );
     if (comptes.length === 0) {
       await connection.rollback();
       return res.status(404).json({ error: 'Compte introuvable.' });
     }
-    if (comptes[0].statut !== 'actif') {
-      await connection.rollback();
-      return res.status(403).json({ error: 'Compte bloqué.' });
-    }
     // Vérification de propriété : le compte doit appartenir à l'utilisateur connecté (sauf admin)
     if (comptes[0].user_id !== req.user.id && !req.user.is_admin) {
       await connection.rollback();
       return res.status(403).json({ error: 'Accès refusé : ce compte ne vous appartient pas.' });
+    }
+    if (comptes[0].statut !== 'actif') {
+      await connection.rollback();
+      return res.status(403).json({ error: 'Compte bloqué.' });
     }
 
     await connection.execute(
@@ -59,30 +55,27 @@ export const deposer = async (req, res) => {
 export const retirer = async (req, res) => {
   const { compte_id, montant, description } = req.body;
 
-  if (!montant || montant <= 0) {
-    return res.status(400).json({ error: 'Le montant doit être supérieur à 0.' });
-  }
-
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
+    // FOR UPDATE : verrouille le compte, deux retraits simultanés ne voient pas le même solde
     const [comptes] = await connection.execute(
-      'SELECT solde, statut, user_id FROM comptes_bancaires WHERE id = ?',
+      'SELECT solde, statut, user_id FROM comptes_bancaires WHERE id = ? FOR UPDATE',
       [compte_id]
     );
     if (comptes.length === 0) {
       await connection.rollback();
       return res.status(404).json({ error: 'Compte introuvable.' });
     }
-    if (comptes[0].statut !== 'actif') {
-      await connection.rollback();
-      return res.status(403).json({ error: 'Compte bloqué.' });
-    }
     // Vérification de propriété : le compte doit appartenir à l'utilisateur connecté (sauf admin)
     if (comptes[0].user_id !== req.user.id && !req.user.is_admin) {
       await connection.rollback();
       return res.status(403).json({ error: 'Accès refusé : ce compte ne vous appartient pas.' });
+    }
+    if (comptes[0].statut !== 'actif') {
+      await connection.rollback();
+      return res.status(403).json({ error: 'Compte bloqué.' });
     }
     if (Number(comptes[0].solde) < Number(montant)) {
       await connection.rollback();
@@ -117,31 +110,27 @@ export const retirer = async (req, res) => {
 export const virerVers = async (req, res) => {
   const { compte_source_id, dest_iban, montant, description } = req.body;
 
-  if (!montant || montant <= 0) {
-    return res.status(400).json({ error: 'Le montant doit être supérieur à 0.' });
-  }
-
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
     // Vérifier le compte source
     const [sources] = await connection.execute(
-      'SELECT solde, statut, iban, user_id FROM comptes_bancaires WHERE id = ?',
+      'SELECT solde, statut, iban, user_id FROM comptes_bancaires WHERE id = ? FOR UPDATE',
       [compte_source_id]
     );
     if (sources.length === 0) {
       await connection.rollback();
       return res.status(404).json({ error: 'Compte source introuvable.' });
     }
-    if (sources[0].statut !== 'actif') {
-      await connection.rollback();
-      return res.status(403).json({ error: 'Compte source bloqué.' });
-    }
     // Vérification de propriété : le compte source doit appartenir à l'utilisateur connecté (sauf admin)
     if (sources[0].user_id !== req.user.id && !req.user.is_admin) {
       await connection.rollback();
       return res.status(403).json({ error: 'Accès refusé : le compte source ne vous appartient pas.' });
+    }
+    if (sources[0].statut !== 'actif') {
+      await connection.rollback();
+      return res.status(403).json({ error: 'Compte source bloqué.' });
     }
     if (sources[0].iban === dest_iban) {
       await connection.rollback();
@@ -154,7 +143,7 @@ export const virerVers = async (req, res) => {
 
     // Chercher le compte destinataire par son IBAN
     const [destinataires] = await connection.execute(
-      'SELECT id, statut FROM comptes_bancaires WHERE iban = ?',
+      'SELECT id, statut FROM comptes_bancaires WHERE iban = ? FOR UPDATE',
       [dest_iban]
     );
     if (destinataires.length === 0 || destinataires[0].statut !== 'actif') {

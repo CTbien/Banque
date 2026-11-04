@@ -22,6 +22,10 @@
     virement: { bouton: 'Envoyer le virement', url: '/api/transactions/virement', succes: 'Virement effectué.' }
   };
 
+  // Règles du cahier des charges (le serveur les revérifie)
+  const MONTANT_MIN = 1;
+  const RETRAIT_MAX = 1000;
+
   const NOMS_COMPTES = { 'courant': 'Compte courant', 'livret a': 'Livret A', 'pel': 'PEL' };
 
   const $ = (id) => document.getElementById(id);
@@ -211,6 +215,12 @@
     if (montant === null) {
       erreurChamp('montant', 'Montant invalide (ex : 25 ou 25,50).');
       valide = false;
+    } else if (montant < MONTANT_MIN) {
+      erreurChamp('montant', `Le montant minimum est de ${MONTANT_MIN} €.`);
+      valide = false;
+    } else if (op === 'retrait' && montant > RETRAIT_MAX) {
+      erreurChamp('montant', `Le montant maximum par retrait est de ${RETRAIT_MAX} €.`);
+      valide = false;
     } else if (op !== 'depot' && montant > Number(c.solde)) {
       erreurChamp('montant', `Solde insuffisant : ${formatEuro(c.solde)} disponibles.`);
       valide = false;
@@ -243,7 +253,8 @@
     try {
       const { ok, data } = await postJson(OPERATIONS[op].url, body);
       if (!ok) {
-        showMessage(data.error || data.message || 'Opération refusée.');
+        // erreurs : détail renvoyé par les validators du serveur
+        showMessage(data.erreurs?.[0]?.message || data.error || data.message || 'Opération refusée.');
         return;
       }
       showMessage(OPERATIONS[op].succes, 'success');
