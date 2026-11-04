@@ -39,6 +39,16 @@ const compteController = {
         }
     },
 
+    // GET /api/comptes/tous : Lister tous les comptes de la banque (Admin)
+    async getTousLesComptes(req, res) {
+        try {
+            const comptes = await CompteModel.trouverTous();
+            return res.status(200).json(comptes);
+        } catch (erreur) {
+            return res.status(500).json({ message: "Erreur serveur.", erreur: erreur.message });
+        }
+    },
+
     // GET /api/comptes/:id : Consulter le détail d'un compte précis
     async getDetailCompte(req, res) {
         try {

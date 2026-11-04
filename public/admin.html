@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration - KampusBank</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/espace.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar-container">
+      <a href="/admin.html" class="navbar-brand"><span>KampusBank</span></a>
+      <span class="badge badge-type">ADMIN</span>
+      <div class="navbar-user">
+        <span class="user-name" id="user-name">…</span>
+        <!-- data-logout : géré par auth.js -->
+        <button type="button" class="btn btn-outline btn-sm" data-logout>Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <h1 class="section-title">Administration</h1>
+
+    <!-- Messages de succès / d'erreur -->
+    <p id="message" class="message" role="alert" hidden></p>
+
+    <!-- Statistiques -->
+    <section class="stats-grid" aria-label="Statistiques">
+      <div class="stat"><span>Clients</span><strong id="stat-clients">—</strong></div>
+      <div class="stat"><span>Comptes</span><strong id="stat-comptes">—</strong></div>
+      <div class="stat"><span>Total des dépôts</span><strong id="stat-depots">—</strong></div>
+      <div class="stat"><span>Solde total</span><strong id="stat-solde">—</strong></div>
+    </section>
+
+    <div class="onglets" role="tablist" aria-label="Sections">
+      <button type="button" class="btn btn-primary btn-sm" role="tab" data-onglet="clients" aria-selected="true">Clients</button>
+      <button type="button" class="btn btn-outline btn-sm" role="tab" data-onglet="comptes" aria-selected="false">Comptes</button>
+    </div>
+
+    <!-- Clients -->
+    <section class="panneau" id="onglet-clients" aria-label="Clients">
+      <form id="recherche-form" class="recherche" role="search">
+        <input type="search" id="recherche" placeholder="Nom, email ou numéro de compte" maxlength="100" aria-label="Rechercher un client">
+        <button type="submit" class="btn btn-primary btn-sm">Rechercher</button>
+      </form>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th scope="col">Nom</th><th scope="col">Email</th><th scope="col">Téléphone</th><th scope="col">Actions</th></tr>
+          </thead>
+          <tbody id="clients-body"></tbody>
+        </table>
+      </div>
+      <p id="clients-etat" class="etat" role="status"></p>
+    </section>
+
+    <!-- Comptes -->
+    <section class="panneau" id="onglet-comptes" aria-label="Comptes" hidden>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">IBAN</th><th scope="col">Titulaire</th><th scope="col">Type</th>
+              <th scope="col" class="num">Solde</th><th scope="col">Statut</th><th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="comptes-body"></tbody>
+        </table>
+      </div>
+      <p id="comptes-etat" class="etat" role="status"></p>
+    </section>
+  </main>
+
+  <!-- Détail d'un client et de ses comptes -->
+  <div class="modal-overlay" id="modal-client" role="dialog" aria-modal="true" aria-labelledby="client-titre">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title" id="client-titre">Client</h2>
+        <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="client-infos"></div>
+        <h3>Comptes</h3>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">IBAN</th><th scope="col">Type</th><th scope="col" class="num">Solde</th>
+                <th scope="col">Statut</th><th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="client-comptes"></tbody>
+          </table>
+        </div>
+        <p id="client-comptes-etat" class="etat"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modification d'un client -->
+  <div class="modal-overlay" id="modal-edition" role="dialog" aria-modal="true" aria-labelledby="edition-titre">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title" id="edition-titre">Modifier le client</h2>
+        <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+      </div>
+      <form id="edition-form" novalidate>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field">
+              <label for="prenom">Prénom</label>
+              <input type="text" id="prenom" name="prenom" required>
+              <small class="error" data-error-for="prenom"></small>
+            </div>
+            <div class="field">
+              <label for="nom">Nom</label>
+              <input type="text" id="nom" name="nom" required>
+              <small class="error" data-error-for="nom"></small>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" required>
+              <small class="error" data-error-for="email"></small>
+            </div>
+            <div class="field">
+              <label for="telephone">Téléphone</label>
+              <input type="tel" id="telephone" name="telephone" required>
+              <small class="error" data-error-for="telephone"></small>
+            </div>
+            <div class="field">
+              <label for="date_naissance">Date de naissance</label>
+              <input type="date" id="date_naissance" name="date_naissance">
+              <small class="error" data-error-for="date_naissance"></small>
+            </div>
+            <div class="field">
+              <label for="adresse_postale">Adresse postale</label>
+              <input type="text" id="adresse_postale" name="adresse_postale">
+              <small class="error" data-error-for="adresse_postale"></small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirmation de suppression -->
+  <div class="modal-overlay" id="modal-suppression" role="dialog" aria-modal="true" aria-labelledby="suppression-titre">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="suppression-titre">Supprimer le client</h2>
+        <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="suppression-texte"></p>
+        <p class="etat">Ses comptes bancaires seront supprimés aussi. Cette action est irréversible.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-cancel">Annuler</button>
+        <button type="button" class="btn btn-danger" id="btn-supprimer">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historique d'un compte -->
+  <div class="modal-overlay" id="modal-historique" role="dialog" aria-modal="true" aria-labelledby="historique-titre">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title" id="historique-titre">Historique</h2>
+        <button type="button" class="modal-close" aria-label="Fermer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th><th scope="col">Opération</th><th scope="col">Libellé</th>
+                <th scope="col" class="num">Montant</th>
+              </tr>
+            </thead>
+            <tbody id="historique-body"></tbody>
+          </table>
+        </div>
+        <p id="historique-etat" class="etat" role="status"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>
