@@ -15,6 +15,18 @@ const CompteModel = {
         return lignes;
     },
 
+    // Admin : récupère tous les comptes avec le nom de leur propriétaire
+    async trouverTous() {
+        const sql = `
+            SELECT c.*, u.nom, u.prenom, u.email
+            FROM comptes_bancaires c
+            JOIN users u ON u.id = c.user_id
+            ORDER BY c.id DESC
+        `;
+        const [lignes] = await pool.execute(sql);
+        return lignes;
+    },
+
     // Récupère un compte unique grâce à son identifiant
     async trouverParId(id) {
         const sql = "SELECT * FROM comptes_bancaires WHERE id = ?";

@@ -54,7 +54,7 @@ export const updateProfileRules = [
     body('telephone').optional().trim().matches(/^\d{10}$/).withMessage('Le téléphone doit contenir 10 chiffres.'),
     body('adresse_postale').optional().trim()
         .isLength({ max: 255 }).withMessage("L'adresse est trop longue."),
-    body('date_naissance').optional()
+    body('date_naissance').optional({ values: 'falsy' })
         .isISO8601().withMessage('Date de naissance invalide (format AAAA-MM-JJ).')
 ];
 
@@ -67,6 +67,41 @@ export const changePasswordRules = [
 // :id dans l'URL doit être un nombre entier positif (toInt() le convertit en nombre)
 export const idParamRule = [
     param('id').isInt({ min: 1 }).withMessage('Identifiant invalide.').toInt()
+];
+
+// Montant : nombre positif, 2 décimales maximum, entre min et max (en euros).
+const montantRule = (min, max = Infinity) => body('montant').custom((valeur) => {
+    const estNombreOuTexte = typeof valeur === 'number' || typeof valeur === 'string';
+    if (!estNombreOuTexte || !/^\d+(\.\d{1,2})?$/.test(String(valeur))) {
+        throw new Error('Le montant doit être un nombre positif avec 2 décimales maximum.');
+    }
+    if (Number(valeur) < min) throw new Error(`Le montant minimum est de ${min} €.`);
+    if (Number(valeur) > max) throw new Error(`Le montant maximum est de ${max} €.`);
+    return true;
+});
+
+// Identifiant de compte envoyé dans le corps de la requête
+const compteIdRule = (champ) => body(champ)
+    .isInt({ min: 1 }).withMessage('Compte invalide.').toInt();
+
+// Libellé facultatif
+const descriptionRule = body('description').optional({ values: 'falsy' })
+    .isString().withMessage('Libellé invalide.').trim()
+    .isLength({ max: 255 }).withMessage('Le libellé est trop long.');
+
+// Dépôt : 1 € minimum
+export const depotRules = [compteIdRule('compte_id'), montantRule(1), descriptionRule];
+
+// Retrait : entre 1 € et 1000 €
+export const retraitRules = [compteIdRule('compte_id'), montantRule(1, 1000), descriptionRule];
+
+// Virement : 1 € minimum, IBAN du destinataire au format de la banque
+export const virementRules = [
+    compteIdRule('compte_source_id'),
+    body('dest_iban').isString().withMessage('IBAN invalide.').trim().toUpperCase()
+        .matches(/^FR76-YBNK-\d{4}-\d{4}-\d{4}-\d{4}-\d{3}$/).withMessage('IBAN invalide.'),
+    montantRule(1),
+    descriptionRule
 ];
 
 // ?q= pour la recherche admin (facultatif)

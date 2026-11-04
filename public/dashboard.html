@@ -14,6 +14,7 @@
   <!-- Feuilles de style -->
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/espace.css">
 </head>
 <body>
 
@@ -38,6 +39,8 @@
         <ul class="navbar-nav">
           <li><a href="/dashboard.html" class="nav-link active" aria-current="page">Mes Comptes</a></li>
           <li><a href="/transactions.html" class="nav-link">Virements & Opérations</a></li>
+          <li><a href="/profil.html" class="nav-link">Mon profil</a></li>
+          <li id="nav-admin" hidden><a href="/admin.html" class="nav-link">Administration</a></li>
         </ul>
       </nav>
 
@@ -53,7 +56,7 @@
             </div>
           </div>
         </div>
-        <button class="btn btn-outline btn-sm" id="btn-logout" data-logout title="Se déconnecter" onclick="deconnecterUtilisateur()">
+        <button class="btn btn-outline btn-sm" id="btn-logout" data-logout title="Se déconnecter">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
             <polyline points="16 17 21 12 16 7"></polyline>
@@ -107,6 +110,21 @@
           </svg>
           Effectuer une opération (Dépôt / Retrait / Virement)
         </a>
+      </div>
+    </section>
+
+    <!-- Informations personnelles (remplies par comptes.js) -->
+    <section class="infos-perso" aria-labelledby="titre-infos">
+      <div class="section-header">
+        <h2 class="section-title" id="titre-infos">Mes informations</h2>
+        <a href="/profil.html" class="btn btn-outline btn-sm">Modifier mon profil</a>
+      </div>
+      <div class="infos-grid">
+        <div class="detail-row"><span class="detail-key">Nom</span><span class="detail-val" id="info-nom">—</span></div>
+        <div class="detail-row"><span class="detail-key">Email</span><span class="detail-val" id="info-email">—</span></div>
+        <div class="detail-row"><span class="detail-key">Téléphone</span><span class="detail-val" id="info-telephone">—</span></div>
+        <div class="detail-row"><span class="detail-key">Date de naissance</span><span class="detail-val" id="info-naissance">—</span></div>
+        <div class="detail-row"><span class="detail-key">Adresse</span><span class="detail-val" id="info-adresse">—</span></div>
       </div>
     </section>
 
@@ -303,21 +321,5 @@
   <!-- Scripts JavaScript -->
   <script src="/js/auth.js"></script>
   <script src="/js/comptes.js"></script>
-  <script>
-    // Fallback de gestion de déconnexion si auth.js n'a pas encore lié le bouton
-    async function deconnecterUtilisateur() {
-      try {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        if (typeof afficherToast === 'function') {
-          afficherToast('Déconnexion réussie. À bientôt !', 'info');
-        }
-        setTimeout(() => {
-          window.location.href = '/login.html';
-        }, 600);
-      } catch (err) {
-        window.location.href = '/login.html';
-      }
-    }
-  </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // auth.js : connexion, inscription et déconnexion côté navigateur.
-// Utilisé par login.html et register.html.
+// Utilisé par login.html et register.html. Ses outils servent aussi à profil.js et admin.js.
 // Sur les autres pages, un bouton avec l'attribut data-logout déconnecte l'utilisateur.
 
 // ===================== OUTILS =====================
@@ -11,10 +11,10 @@ async function getCsrfToken() {
   return data.csrfToken;
 }
 
-// Envoie un POST en JSON avec le jeton CSRF. Renvoie { ok, status, data }.
-async function postJson(url, body) {
+// Envoie du JSON avec le jeton CSRF. Renvoie { ok, status, data }.
+async function sendJson(method, url, body) {
   const res = await fetch(url, {
-    method: 'POST',
+    method,
     headers: {
       'Content-Type': 'application/json',
       'x-csrf-token': await getCsrfToken()
@@ -24,6 +24,11 @@ async function postJson(url, body) {
   const data = await res.json().catch(() => ({})); // {} si la réponse n'est pas du JSON
   return { ok: res.ok, status: res.status, data };
 }
+
+const postJson = (url, body) => sendJson('POST', url, body);
+
+// Page d'accueil selon le rôle.
+const pageAccueil = (user) => (user.is_admin ? '/admin.html' : '/dashboard.html');
 
 // Affiche un message en haut du formulaire (type : 'error' ou 'success').
 function showMessage(texte, type = 'error') {
@@ -84,8 +89,8 @@ async function handleLogin(event) {
     const { ok, data } = await postJson('/api/auth/login', { email, mot_de_passe });
     if (!ok) return showServerErrors(data);
 
-    // Connecté : le cookie est posé par le serveur, on va au tableau de bord.
-    window.location.href = '/dashboard.html';
+    // Connecté : le cookie est posé par le serveur, on va à l'accueil selon le rôle.
+    window.location.href = pageAccueil(data.user);
   } catch (erreur) {
     showMessage('Impossible de contacter le serveur.');
   } finally {
@@ -168,10 +173,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     registerForm.addEventListener('submit', handleRegister);
   }
 
-  // Déjà connecté sur la page de connexion ou d'inscription ? → tableau de bord.
+  // Déjà connecté sur la page de connexion ou d'inscription ? → page d'accueil.
   if (loginForm || registerForm) {
     const res = await fetch('/api/auth/me');
-    if (res.ok) window.location.href = '/dashboard.html';
+    if (res.ok) window.location.href = pageAccueil((await res.json()).user);
   }
 
   // Tous les boutons data-logout de la page déconnectent l'utilisateur.

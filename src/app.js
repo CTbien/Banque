@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
 import { csrfProtection } from './middlewares/csrf.js';
+import { pageConnecte, pageAdmin } from './middlewares/pages.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import compteRoutes from './routes/compteRoutes.js';
@@ -22,6 +23,10 @@ app.use(express.json());
 
 // Lit les cookies (req.cookies.token), nécessaire au middleware auth
 app.use(cookieParser());
+
+// Pages réservées : vérifiées AVANT express.static, sinon elles seraient servies à tous
+app.get(['/dashboard.html', '/transactions.html', '/profil.html'], pageConnecte);
+app.get('/admin.html', pageAdmin);
 
 // Servir les fichiers statiques du dossier public (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, '../public')));
